@@ -1,0 +1,24 @@
+[Desktop Entry]
+Name=SC Controller
+GenericName=SC Controller
+Comment=Edits controller mappings
+Comment[ru]=Настройка контроллера
+Exec=sc-controller gui
+Type=Application
+Icon=${SNAP}/share/scc/images/menu-icons/system/sc-controller.png
+Categories=GTK;Settings;HardwareSettings;
+MimeType=application/x-steamcontrollerdb-profile;application/x-scc-profile;application/x-scc-profile-package
+
+Actions=S1;S2;S3;
+
+[Desktop Action S1]
+Name=Start Emulation
+Exec=sc-controller daemon start
+
+[Desktop Action S2]
+Name=Restart Emulation
+Exec=sc-controller daemon restart
+
+[Desktop Action S3]
+Name=Stop Emulation
+Exec=sc-controller daemon stop

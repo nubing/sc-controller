@@ -1,0 +1,139 @@
+name: sc-controller
+version: 'v0.4.7'
+summary: Application for controlling many game controllers
+description: |
+  User-mode driver, mapper and GTK3 based GUI for Steam Controller,
+  DS4 and other controllers.
+
+grade: stable
+confinement: strict
+base: core18
+
+architectures:
+  - build-on: amd64
+
+plugs:
+
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
+  gtk-3-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
+
+apps:
+
+  sc-controller:
+    command: desktop-launch $SNAP/bin/scc
+    plugs:
+      - desktop
+      - unity7
+      - network
+      - network-bind
+      - x11
+      - gsettings
+      - raw-usb
+      - bluez
+    environment:
+      PYTHONPATH: $PYTHONPATH:$SNAP/usr/lib/python2.7/site-packages
+      GI_TYPELIB_PATH: $SNAP/usr/lib/girepository-1.0
+      GDK_PIXBUF_MODULEDIR: $SNAP/usr/lib/gdk-pixbuf-2.0/2.10.0/loaders
+      SCC_SHARED: $SNAP/usr/share/scc
+      C_MODULES: (uinput hiddrv sc_by_bt remotepad)
+      C_VERSION_uinput: 9
+      C_VERSION_hiddrv: 5
+      C_VERSION_sc_by_bt: 3
+      C_VERSION_remotepad: 1
+
+parts:
+
+  desktop-gnome-platform:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    plugin: make
+    make-parameters: ["FLAVOR=gtk3"]
+    build-packages:
+      - libgtk-3-dev
+
+  libappindicator:
+    after:
+      - desktop-gnome-platform
+    plugin: nil
+    stage-packages:
+      - libappindicator3-1
+    prime:
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdbusmenu*.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libappindicator*.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libindicator*.so*
+
+  sc-controller:
+    plugin: python
+    python-version: python2
+    source: https://github.com/kozec/sc-controller.git
+    source-tag: $SNAPCRAFT_PROJECT_VERSION
+    after:
+      - desktop-gnome-platform
+      - libappindicator
+    stage-packages:
+      - python-distutils-extra
+      - python-gobject
+      - python-evdev
+      - python-pylibacl
+      - libpng16-16
+      - libgdk-pixbuf2.0-0
+      - libcroco3
+      - libxml2
+      - icu-devtools
+      - python-gi
+      - python-gi-cairo
+      - libcairo-gobject2
+      - gir1.2-unity-5.0
+      - gir1.2-notify-0.7
+      - gir1.2-gtk-3.0
+      - gir1.2-pango-1.0
+      - gir1.2-rsvg-2.0
+      - gir1.2-appindicator3-0.1
+      - python-cairo
+      - libcanberra-gtk3-module
+      - libgusb-dev
+      - linux-libc-dev
+      - python-shellescape
+      - libbluetooth-dev
+      - steam-devices
+    override-prime: |
+      snapcraftctl prime
+      cp "usr/include/linux/input-event-codes.h" "lib/python2.7/site-packages/scc"
+      cp --archive "share" "usr"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ani.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-bmp.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-icns.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-ico.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-jasper.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-jpeg.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-qtif.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tga.so"
+      rm --force "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-tiff.so"
+      rm --force --recursive "usr/share/doc"
+      rm --force --recursive "usr/share/gtk-doc"
+      rm --force --recursive "usr/share/locale"
+      rm --force --recursive "usr/share/man"
+      rm --force --recursive "usr/share/thumbnailers"
+      rm --force --recursive "usr/share/vala"
+      rm --force --recursive "share"
+      rm --force --recursive "etc/python3.6"
+      rm --force --recursive "usr/lib/python3"
+      rm --force --recursive "usr/lib/python3.6"
+      rm --force --recursive "usr/lib/python3.7"
+      
+
